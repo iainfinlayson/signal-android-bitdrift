@@ -126,6 +126,12 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import kotlin.Unit;
 import rxdogtag2.RxDogTag;
 
+import org.signal.core.util.logging.BitdriftLogger;
+import io.bitdrift.capture.Capture.Logger;
+import io.bitdrift.capture.providers.session.SessionStrategy;
+import okhttp3.HttpUrl;
+
+
 /**
  * Will be called once when the TextSecure process is created.
  * <p>
@@ -151,6 +157,17 @@ public class ApplicationContext extends Application implements AppForegroundObse
     long startTime = System.currentTimeMillis();
 
     super.onCreate();
+
+    Logger.start(
+        BuildConfig.BITDRIFT_API_KEY,
+        new SessionStrategy.Fixed(),
+        new io.bitdrift.capture.Configuration(),
+        java.util.Collections.emptyList(),
+        null,
+        HttpUrl.parse("https://api.bitdrift.dev"),
+        this
+    );
+
 
     AppStartup.getInstance().addBlocking("sqlcipher-init", () -> {
                 SqlCipherLibraryLoader.load();
@@ -335,7 +352,7 @@ public class ApplicationContext extends Application implements AppForegroundObse
 
   @VisibleForTesting
   protected void initializeLogging() {
-    Log.initialize(RemoteConfig::internalUser, AndroidLogger.INSTANCE, PersistentLogger.getInstance(this));
+    Log.initialize(RemoteConfig::internalUser, AndroidLogger.INSTANCE, PersistentLogger.getInstance(this), new BitdriftLogger());
 
     SignalProtocolLoggerProvider.setProvider(new CustomSignalProtocolLogger());
     SignalProtocolLoggerProvider.initializeLogging(BuildConfig.LIBSIGNAL_LOG_LEVEL);

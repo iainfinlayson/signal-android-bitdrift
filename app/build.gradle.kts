@@ -7,6 +7,15 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Properties
 
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath("io.bitdrift:capture-plugin:0.18.8")
+  }
+}
+
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.jetbrains.kotlin.android)
@@ -18,6 +27,8 @@ plugins {
   id("translations")
   id("licenses")
 }
+
+apply(plugin = "io.bitdrift.capture-plugin")
 
 apply(from = "static-ips.gradle.kts")
 
@@ -239,6 +250,16 @@ android {
     buildConfigField("boolean", "TRACING_ENABLED", "false")
     buildConfigField("boolean", "MESSAGE_BACKUP_RESTORE_ENABLED", "true")
     buildConfigField("boolean", "LINK_DEVICE_UX_ENABLED", "false")
+
+    // --- Bitdrift API key injection ---
+    val localProps = project.rootProject.file("local.properties")
+    val props = Properties()
+    if (localProps.exists()) {
+      props.load(localProps.inputStream())
+    }
+    val bitdriftApiKey: String = props.getProperty("BITDRIFT_API_KEY") ?: ""
+    buildConfigField("String", "BITDRIFT_API_KEY", "\"$bitdriftApiKey\"")
+    // -----------------------------------
 
     ndk {
       abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
@@ -495,6 +516,7 @@ dependencies {
   ktlintRuleset(libs.ktlint.twitter.compose)
   coreLibraryDesugaring(libs.android.tools.desugar)
 
+  implementation("io.bitdrift:capture:0.18.8")
   implementation(project(":libsignal-service"))
   implementation(project(":paging"))
   implementation(project(":core-util"))
