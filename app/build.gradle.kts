@@ -6,13 +6,16 @@ import java.io.FileInputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Properties
+import io.bitdrift.capture.extension.BitdriftPluginExtension
+import io.bitdrift.capture.extension.InstrumentationExtension
+
 
 buildscript {
   repositories {
     mavenCentral()
   }
   dependencies {
-    classpath("io.bitdrift:capture-plugin:0.18.8")
+    classpath("io.bitdrift:capture-plugin:0.18.12")
   }
 }
 
@@ -516,7 +519,7 @@ dependencies {
   ktlintRuleset(libs.ktlint.twitter.compose)
   coreLibraryDesugaring(libs.android.tools.desugar)
 
-  implementation("io.bitdrift:capture:0.18.8")
+  implementation(libs.capture.sdk)
   implementation(project(":libsignal-service"))
   implementation(project(":paging"))
   implementation(project(":core-util"))
@@ -778,4 +781,8 @@ fun Project.languageList(): List<String> {
 
 fun String.capitalize(): String {
   return this.replaceFirstChar { it.uppercase() }
+}
+
+extensions.configure<BitdriftPluginExtension> {
+  instrumentation.automaticOkHttpInstrumentation.set(true)
 }
